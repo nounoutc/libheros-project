@@ -1,63 +1,44 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTaskListDto } from './dto/create-task-list.dto';
+import { UpdateTaskListDto } from './dto/update-task-list.dto';
 
 @Injectable()
 export class TaskListsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    userId: number,
-    createTaskListDto: CreateTaskListDto,
-  ): Promise<any> {
+  async create(userId: number, dto: CreateTaskListDto) {
+    const exists = await this.prisma.taskList.findFirst({
+      where: { userId, name: dto.name },
+    });
+
+    if (exists) {
+      throw new ConflictException('A task list with this name already exists');
+    }
+
     return this.prisma.taskList.create({
       data: {
-        ...createTaskListDto,
-        user: {
-          connect: { id: userId },
-        },
+        name: dto.name,
+        userId,
       },
     });
   }
 
-  async findAll(userId: number): Promise<any[]> {
+  async findAllByUser(userId: number) {
     return this.prisma.taskList.findMany({
-      where: {
-        userId: userId,
-      },
+      where: { userId },
+      include: { tasks: true },
     });
   }
 
-  async findOne(id: number): Promise<any> {
-    const taskList = await this.prisma.taskList.findUnique({
-      where: { id },
-    });
-    if (!taskList) {
-      throw new NotFoundException(`Task list with ID ${id} not found`);
-    }
-    return taskList;
-  }
-
-  async update(id: number, updateTaskListDto: UpdateTaskListDto): Promise<any> {
+  async update(id: number, dto: UpdateTaskListDto) {
     return this.prisma.taskList.update({
       where: { id },
-      data: updateTaskListDto,
+      data: dto,
     });
   }
 
-  async remove(id: number): Promise<void> {
-    await this.prisma.taskList.delete({
-      where: { id },
-    });
-  }
-
-  async isOwner(userId: number, taskListId: number): Promise<boolean> {
-    const taskList = await this.prisma.taskList.findUnique({
-      where: { id: taskListId, userId: userId },
-    });
-    return !!taskList;
+  async remove(id: number) {
+    return this.prisma.taskList.delete({ where: { id } });
   }
 }

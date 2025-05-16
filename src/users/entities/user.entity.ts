@@ -1,27 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { TaskList } from '../../task-lists/entities/task-list.entity';
-import { Task } from '../../tasks/entities/task.entity';
+import { Controller, Post, Body } from '@nestjs/common';
+import { UsersService } from '../users.service';
+import { CreateUserDto } from '../dto/create-user.dto';
 
-@Entity()
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
 
-  @Column({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @OneToMany(() => TaskList, (taskList) => taskList.user)
-  taskLists: TaskList[];
-
-  @OneToMany(() => Task, (task) => task.taskList)
-  tasks: Task[];
+  @Post('register')
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
 }

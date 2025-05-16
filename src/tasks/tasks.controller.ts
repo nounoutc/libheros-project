@@ -1,49 +1,50 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { TaskListOwnerGuard } from '../task-lists/guards/task-list-owner.guard';
 
-@Controller('tasks')
 @UseGuards(JwtAuthGuard)
+@Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @Post('task-lists/:taskListId/tasks')
-  @UseGuards(TaskListOwnerGuard)
-  async create(
-    @Param('taskListId') taskListId: string,
-    @Body(ValidationPipe) createTaskDto: CreateTaskDto,
-  ): Promise<any> {
-    const parsedTaskListId = parseInt(taskListId, 10);
-    return this.tasksService.create(parsedTaskListId, createTaskDto);
+  @Post()
+  create(@Body() dto: CreateTaskDto, @Request() req) {
+    return this.tasksService.create(dto, req.user.userId);
   }
 
-  @Get('task-lists/:taskListId/tasks')
-  @UseGuards(TaskListOwnerGuard)
-  async findAll(
-    @Param('taskListId') taskListId: string,
-  ): Promise<any[]> {
-    const parsedTaskListId = parseInt(taskListId, 10);
-    return this.tasksService.findAll(parsedTaskListId);
+  @Get()
+  findAll(@Request() req) {
+    return this.tasksService.findAll(req.user.userId);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<any> {
-    const taskId = parseInt(id, 10);
-    return this.tasksService.findOne(taskId);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.tasksService.findOne(+id, req.user.userId);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body(ValidationPipe) updateTaskDto: UpdateTaskDto): Promise<any> {
-    const taskId = parseInt(id, 10);
-    return this.tasksService.update(taskId, updateTaskDto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTaskDto,
+    @Request() req,
+  ) {
+    return this.tasksService.update(+id, dto, req.user.userId);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    const taskId = parseInt(id, 10);
-    await this.tasksService.remove(taskId);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.tasksService.remove(+id, req.user.userId);
   }
 }

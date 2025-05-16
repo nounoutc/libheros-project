@@ -1,7 +1,7 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateTaskListDto {
-  @IsOptional()
   @IsString()
+  @IsOptional()
   name?: string;
 }

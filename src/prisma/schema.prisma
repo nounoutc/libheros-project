@@ -3,41 +3,37 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql"  // adapte selon ta base, ex: mysql, sqlite, etc.
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
-  firstName String
-  lastName  String
-  taskLists TaskList[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  password   String
+  tasksLists TaskList[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model TaskList {
   id        Int      @id @default(autoincrement())
   name      String
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks     Task[]   @relation(onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+  tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, name])
+  @@unique([name, userId]) // chaque user ne peut pas avoir 2 listes avec même nom
 }
 
 model Task {
-  id          Int       @id @default(autoincrement())
-  shortDescription String
-  longDescription String?
-  dueDate       DateTime
-  isCompleted   Boolean   @default(false)
-  taskListId    Int
-  taskList    TaskList  @relation(fields: [taskListId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  title      String
+  completed  Boolean  @default(false)
+  taskListId Int
+  taskList   TaskList @relation(fields: [taskListId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
