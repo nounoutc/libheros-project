@@ -1,29 +1,17 @@
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class TasksService {}
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TaskListOwnerGuard } from '../task-lists/guards/task-list-owner.guard';
+import { CreateTaskDto } from './dto/create-task.dto'; // Import DTO
+import { UpdateTaskDto } from './dto/update-task.dto'; // Import DTO
 
 @Injectable()
 export class TasksService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly taskListOwnerGuard: TaskListOwnerGuard,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(taskListId: number, createTaskDto: CreateTaskDto): Promise<any> {
     return this.prisma.task.create({
       data: {
         ...createTaskDto,
-        taskList: {
-          connect: { id: taskListId },
-        },
+        taskListId: taskListId,
       },
     });
   }
