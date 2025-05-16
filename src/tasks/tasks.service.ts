@@ -5,26 +5,32 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-async create(dto: CreateTaskDto, userId: number) {
-  if (dto.taskListId !== undefined) {
-    const taskList = await this.prisma.taskList.findFirst({
-      where: { id: dto.taskListId, userId },
-    });
-    if (!taskList) {
-      throw new NotFoundException('Task list not found or unauthorized');
+  async create(dto: CreateTaskDto, userId: number) {
+    if (dto.taskListId !== undefined) {
+      const taskList = await this.prisma.taskList.findFirst({
+        where: { id: dto.taskListId, userId },
+      });
+      if (!taskList) {
+        throw new NotFoundException('Task list not found or unauthorized');
+      }
     }
-  }
 
-  return this.prisma.task.create({
-    data: {
+    const data: any = {
       title: dto.title,
       completed: dto.completed ?? false,
-      ...(dto.taskListId !== undefined && { taskListId: dto.taskListId }),
-    },
-  });
-}
+    };
+
+    if (dto.taskListId !== undefined) {
+      data.taskList = {
+        connect: { id: dto.taskListId },
+      };
+    }
+
+    return this.prisma.task.create({ data });
+  }
+
 
 
   async findAll(userId: number) {
@@ -34,7 +40,6 @@ async create(dto: CreateTaskDto, userId: number) {
           userId,
         },
       },
-      orderBy: { createdAt: 'desc' },
     });
   }
 
