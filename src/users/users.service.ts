@@ -5,17 +5,21 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    return this.prisma.user.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        password: hashedPassword,
-      },
-    });
+    if (dto.password !== undefined && dto.email !== undefined) {
+      ;
+      const hashedPassword = await bcrypt.hash(dto?.password, 10);
+      return this.prisma.user.create({
+        data: {
+          name: dto.name,
+          email: dto.email,
+          password: hashedPassword,
+        },
+      });
+    }
+
   }
 
   async findByEmail(email: string) {
